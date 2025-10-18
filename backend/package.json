@@ -19,7 +19,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
     "mongoose": "^8.18.1",
-    "mongose": "^0.0.2-security"
+    
   },
   "type": "commonjs"
 }
