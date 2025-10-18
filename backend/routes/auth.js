@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models'); // Asegúrate de que este modelo exista
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Ruta de login
