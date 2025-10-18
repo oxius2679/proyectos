@@ -1,4 +1,3 @@
-// C:\proyectos\backend\server.js
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion } = require('mongodb');
@@ -6,20 +5,18 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Backend corriendo en http://localhost:${PORT}`);
-});
-
-
-
 
 // === Middlewares ===
 const corsOptions = {
-    origin: ['https://misistema.netlify.app', 'http://localhost:8000'], // ✅ Sin espacios al final
+  origin: [
+    'https://frabjous-marzipan-7339a6.netlify.app',
+    'http://localhost:8000'
+  ],
   credentials: true,
   optionsSuccessStatus: 200
 };
-app.use(cors(corsOptions));app.use(express.json());
+app.use(cors(corsOptions));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // === Conexión a MongoDB ===
@@ -40,20 +37,18 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// === Rutas de autenticación (públicas) ===
+// === Rutas de autenticación ===
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
 // === Middleware de autenticación ===
 const auth = require('./middleware/auth');
 
-// === Rutas protegidas (requieren token JWT) ===
+// === Rutas protegidas ===
 app.get('/api/projects', auth, async (req, res) => {
   try {
     await client.connect();
     const db = client.db('gestion_proyectos');
-    // Buscar datos del usuario actual (usando req.user.id si lo tienes en BD)
-    // Por ahora, usamos un documento único (puedes mejorar esto después)
     const projectsData = await db.collection('projects').findOne({});
     res.json(projectsData || { projects: [], currentProjectIndex: 0 });
   } catch (error) {
@@ -92,8 +87,9 @@ async function startServer() {
     await client.db('admin').command({ ping: 1 });
     console.log('✅ Conectado a MongoDB Atlas');
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Backend corriendo en http://localhost:${PORT}`);
+    // ✅ SOLO UNA LLAMADA A app.listen(), con '0.0.0.0'
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Backend corriendo en puerto ${PORT}`);
       console.log('🔐 Rutas protegidas con JWT');
     });
   } catch (error) {
