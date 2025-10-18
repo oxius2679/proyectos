@@ -267,7 +267,17 @@ async function login() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    const data = await res.json();
+
+    console.log('🚀 Respuesta del backend:', res.status, res.statusText);
+
+    // Intenta leer el cuerpo solo si hay contenido
+    let data = {};
+    if (res.headers.get('content-length') !== '0') {
+      data = await res.json();
+    }
+
+    console.log('✅ Datos recibidos:', data);
+
     if (res.ok) {
       authToken = data.token;
       localStorage.setItem('authToken', authToken);
@@ -277,10 +287,10 @@ async function login() {
       document.getElementById('loginError').textContent = data.error || 'Error desconocido';
     }
   } catch (err) {
+    console.error('❌ Error en login():', err); // 👈 Añade este log
     document.getElementById('loginError').textContent = 'Error de conexión con el servidor';
   }
 }
-
 // === MOSTRAR PANTALLA DE LOGIN/REGISTRO ===
 function showLoginScreen() {
   document.body.innerHTML = `
