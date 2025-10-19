@@ -122,49 +122,50 @@ async function safeLoad() {
   console.group('📥 Cargando datos desde backend o localStorage');
   let loadedData = null;
 
-  // ✅ Si el backend está disponible, CARGA SIEMPRE desde ahí
+  // Siempre intenta cargar desde el backend primero
   if (await checkBackendStatus()) {
     try {
       const response = await fetch(`${API_URL}/projects`, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
       });
       if (response.ok) {
         loadedData = await response.json();
         console.log('✅ Datos cargados desde MongoDB');
         window.useBackend = true;
-        // ✅ Guardar en localStorage como respaldo, PERO USAR los del backend
-        localStorage.setItem('projects', JSON.stringify(loadedData.projects));
-        localStorage.setItem('currentProjectIndex', loadedData.currentProjectIndex || 0);
+      } else {
+        console.warn('⚠️ Backend devolvió un error:', response.status);
       }
     } catch (error) {
-      console.warn('⚠️ Error cargando desde backend');
+      console.error('❌ Error crítico al cargar desde backend:', error);
     }
   }
 
-  // ❌ Solo usar localStorage si el backend NO está disponible
+  // Si no se pudieron cargar los datos del backend, usa localStorage como respaldo
   if (!loadedData || !loadedData.projects) {
-    console.log('🔄 Backend no disponible, usando localStorage');
+    console.log('🔄 Usando datos de localStorage como respaldo');
     const savedProjects = localStorage.getItem('projects');
     if (savedProjects) {
       loadedData = {
         projects: JSON.parse(savedProjects),
-        currentProjectIndex: parseInt(localStorage.getItem('currentProjectIndex') || '0')
+        currentProjectIndex: 0
       };
     }
   }
 
+  // Si aún no hay datos, crea un proyecto inicial
   if (loadedData && loadedData.projects) {
     projects = loadedData.projects;
     currentProjectIndex = loadedData.currentProjectIndex || 0;
   } else {
-    if (projects.length === 0) {
-      createNewProject();
-    }
+    console.log('📝 No hay datos, creando proyecto inicial...');
+    createNewProject();
   }
+
   console.groupEnd();
   return !!loadedData;
 }
-
 
 /**************************************
  * SISTEMA DE METODOLOGÍAS HÍBRIDAS - PASO 1 *
