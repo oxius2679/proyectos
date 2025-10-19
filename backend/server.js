@@ -8,10 +8,10 @@ const PORT = process.env.PORT || 5000;
 
 // === Middlewares ===
 const corsOptions = {
-  origin: [
-    'https://starlit-phoenix-8ff1bb.netlify.app',
-    'http://localhost:8000'
-  ],
+ origin: [
+  'https://starlit-phoenix-8ff1bb.netlify.app', // ✅ Sin espacios
+  'http://localhost:8000'
+],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -38,7 +38,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // === Rutas de autenticación ===
-const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/auth')(client); // 👈 Pasa el cliente aquí
 app.use('/api/auth', authRoutes);
 
 // === Middleware de autenticación ===
