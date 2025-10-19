@@ -240,7 +240,7 @@ async function register() {
     const res = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password })
+      body: JSON.stringify({ name, email, password, role: 'viewer'  })
     });
     const data = await res.json();
     if (res.ok) {
