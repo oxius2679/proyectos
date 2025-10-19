@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 // === Middlewares ===
 const corsOptions = {
   origin: [
-    'https://frabjous-marzipan-7339a6.netlify.app',
+    'https://starlit-phoenix-8ff1bb.netlify.app',
     'http://localhost:8000'
   ],
   credentials: true,
