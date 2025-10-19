@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Proyectos 4D Ultra Premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1, #8b5cf6);
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+            background-size: cover;
+            z-index: -1;
+        }
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            animation: float 15s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        .dashboard-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            transform: perspective(1000px) rotateX(5deg);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(99, 102, 241, 0.2), transparent);
+            animation: shine 3s infinite;
+            z-index: 0;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        .dashboard-header:hover {
+            transform: perspective(1000px) rotateX(0deg);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.25);
+        }
+        .dashboard-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #e0e7ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+        .dashboard-header h1 i {
+            margin-right: 15px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            transition: transform 0.3s ease;
+        }
+        .dashboard-header h1 i:hover {
+            transform: scale(1.2) rotate(15deg);
+            text-shadow: 0 0 20px rgba(99, 102, 241, 0.8);
+        }
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .mode-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--glass-bg);
+            padding: 8px 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+            position: relative;
+        }
+        .mode-selector::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+        .mode-selector:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+        .mode-selector label {
+            font-weight: 500;
+            color: #e0e7ff;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+        .mode-selector select {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--dark);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+        .mode-selector select:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .mode-selector select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+        }
+        .btn-refresh {
+            padding: 10px 20px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3), 0 2px 4px -1px rgba(99, 102, 241, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-refresh::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        .btn-refresh:hover::before {
+            left: 100%;
+        }
+        .btn-refresh:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .btn-refresh:active {
+            transform: translateY(1px);
+        }
+        .btn-refresh i {
+            transition: var(--transition);
+        }
+        .btn-refresh:hover i {
+            transform: rotate(360deg);
+        }
+        /* Summary Cards */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+            perspective: 1000px;
+        }
+        .summary-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            position: relative;
+            overflow: hidden;
+            animation: cardFloat 6s ease-in-out infinite;
+        }
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0px) rotateX(0deg); }
+            50% { transform: translateY(-10px) rotateX(5deg); }
+        }
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+            z-index: 0;
+        }
+        .summary-card:hover {
+            transform: translateY(-15px) rotateX(10deg) scale(1.03);
+            box-shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .summary-card .card-icon {
+            font-size: 32px;
+            margin-right: 20px;
+            width: 70px;
+            height: 70px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            transform: translateZ(20px);
+        }
+        .summary-card:hover .card-icon {
+            transform: translateZ(40px) rotateY(20deg) rotateX(10deg) scale(1.15);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        .summary-card .card-content h3 {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .summary-card .card-content span {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--dark);
+            background: linear-gradient(to right, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: block;
+            transition: var(--transition);
+        }
+        .summary-card:hover .card-content span {
+            text-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+            transform: scale(1.1);
+        }
+        .total-projects .card-icon {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+        }
+        .active-projects .card-icon {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+            border: 2px solid rgba(16, 185, 129, 0.3);
+        }
+        .completed-projects .card-icon {
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            color: white;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+        }
+        .delayed-projects .card-icon {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: white;
+            border: 2px solid rgba(239, 68, 68, 0.3);
+        }
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        /* === Asegurar centrado perfecto para la gráfica de Progreso General === */
+/* === Asegurar centrado perfecto para la gráfica de Progreso General === */
+.chart-container {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transform: perspective(1000px);
+    transition: var(--transition);
+    /* === AÑADIR ESTAS PROPIEDADES === */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    /* ============================== */
+}
+.chart-container:hover {
+    transform: perspective(1000px) translateZ(10px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
+}
+.chart-container h3 {
+    margin-bottom: 20px;
+    color: var(--dark);
+    font-size: 18px;
+    font-weight: 700;
+    /* === AÑADIR ESTA PROPIEDAD === */
+    width: 100%;
+    text-align: center;
+    /* =========================== */
+}
+/* ================================================ *//* ================================================ */
+        /* Projects List */
+        .projects-list-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: perspective(1000px);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .projects-list-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .projects-list-section:hover {
+            transform: perspective(1000px) translateZ(15px) rotateX(5deg);
+            box-shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .projects-list-section h2 {
+            margin-bottom: 25px;
+            color: var(--dark);
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            position: relative;
+            display: inline-block;
+        }
+        .projects-list-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+        .projects-table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        #projectsTable {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        #projectsTable th {
+            background: linear-gradient(to bottom, #f3f4f6, #e5e7eb);
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--dark);
+            border-bottom: 2px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(5px);
+            z-index: 1;
+        }
+        #projectsTable th:first-child {
+            border-top-left-radius: 12px;
+        }
+        #projectsTable th:last-child {
+            border-top-right-radius: 12px;
+        }
+        #projectsTable td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        #projectsTable tr:hover {
+            background: rgba(99, 102, 241, 0.08);
+            transform: translateX(5px);
+        }
+        #projectsTable tr:last-child td {
+            border-bottom: none;
+        }
+        .progress-bar {
+            height: 12px;
+            background-color: #e5e7eb;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: progressShine 2s infinite;
+        }
+        @keyframes progressShine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-block;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+        .status-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        .status-active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #047857;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        .status-completed {
+            background: rgba(139, 92, 246, 0.2);
+            color: #6d28d9;
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+        .status-delayed {
+            background: rgba(239, 68, 68, 0.2);
+            color: #b91c1c;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .status-planning {
+            background: rgba(59, 130, 246, 0.2);
+            color: #1d4ed8;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .btn-view {
+            padding: 10px 20px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        .btn-view::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+            transition: 0.5s;
+        }
+        .btn-view:hover::before {
+            transform: translateX(100%);
+        }
+        .btn-view:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+        }
+        .btn-view:active {
+            transform: translateY(1px);
+        }
+        /* Risks Section */
+        .risks-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: perspective(1000px);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .risks-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .risks-section:hover {
+            transform: perspective(1000px) translateZ(15px) rotateX(5deg);
+            box-shadow: 0 25px 50px -15px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .risks-section h2 {
+            margin-bottom: 25px;
+            color: var(--dark);
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            position: relative;
+            display: inline-block;
+        }
+        .risks-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(to right, #f59e0b, #ef4444);
+            border-radius: 2px;
+        }
+        .risks-section h2 i {
+            color: #f59e0b;
+            margin-right: 10px;
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+        .risks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .risk-item {
+            padding: 25px;
+            border-radius: 16px;
+            border-left: 5px solid;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            transform-style: preserve-3d;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .risk-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.1), transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .risk-item:hover {
+            transform: translateY(-10px) rotateX(10deg) scale(1.03);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .risk-high {
+            border-left-color: #ef4444;
+            background: linear-gradient(to right, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.02));
+        }
+        .risk-medium {
+            border-left-color: #f59e0b;
+            background: linear-gradient(to right, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.02));
+        }
+        .risk-low {
+            border-left-color: #10b981;
+            background: linear-gradient(to right, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
+        }
+        .risk-item h4 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            color: #1f2937;
+            font-weight: 700;
+            font-size: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .risk-item h4 i {
+            margin-right: 12px;
+            font-size: 18px;
+            transition: var(--transition);
+        }
+        .risk-item:hover h4 i {
+            transform: scale(1.2);
+        }
+        .risk-high h4 {
+            color: #dc2626;
+        }
+        .risk-medium h4 {
+            color: #d97706;
+        }
+        .risk-low h4 {
+            color: #059669;
+        }
+        .risk-item p {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px) rotateX(30deg); }
+            to { opacity: 1; transform: translateY(0) rotateX(0deg); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+            .header-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+        @media (max-width: 480px) {
+            .dashboard-container {
+                padding: 15px;
+            }
+            .dashboard-header h1 {
+                font-size: 24px;
+            }
+            .header-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .mode-selector, .btn-refresh {
+                width: 100%;
+            }
+        }
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 18px 30px;
+            border-radius: 15px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.5s ease-out, slideOut 0.5s 2.5s ease-out forwards;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: translateX(120%);
+            position: relative;
+            overflow: hidden;
+        }
+        @keyframes slideIn {
+            to { transform: translateX(0); }
+        }
+        @keyframes slideOut {
+            to { transform: translateX(120%); opacity: 0; }
+        }
+        .notification::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shine 2s infinite;
+            z-index: 0;
+        }
+        .notification-success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+            border-left: 4px solid #10b981;
+        }
+        .notification-error {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(185, 28, 28, 0.95));
+            border-left: 4px solid #ef4444;
+        }
+        .notification-info {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
+            border-left: 4px solid #3b82f6;
+        }
+        .notification button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            margin-left: 15px;
+            transition: var(--transition);
+            padding: 5px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .notification button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+        /* 4D Effects */
+        @keyframes pulse4D {
+            0%, 100% { transform: scale(1) rotateX(0deg); opacity: 1; }
+            25% { transform: scale(1.05) rotateX(5deg); opacity: 0.9; }
+            50% { transform: scale(1.1) rotateX(10deg); opacity: 0.8; }
+            75% { transform: scale(1.05) rotateX(5deg); opacity: 0.9; }
+        }
+        .pulse-4d {
+            animation: pulse4D 4s ease-in-out infinite;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-4d {
+            background-size: 200% 200%;
+            animation: gradientShift 3s ease infinite;
+        }
+        /* Floating effect for entire dashboard */
+        .dashboard-container {
+            animation: float4D 8s ease-in-out infinite;
+        }
+        @keyframes float4D {
+            0%, 100% { transform: translateY(0px) rotateX(0deg); }
+            25% { transform: translateY(-10px) rotateX(2deg); }
+            50% { transform: translateY(0px) rotateX(0deg); }
+            75% { transform: translateY(10px) rotateX(-2deg); }
+        }
+        /* Parallax effect on scroll */
+        .parallax {
+            transform-style: preserve-3d;
+        }
+        .parallax-layer {
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+        /* Glow effects */
+        .glow-effect {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+            transition: box-shadow 0.3s ease;
+        }
+        .glow-effect:hover {
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.6);
+        }
+        /* Neon effects */
+        .neon-text {
+            text-shadow: 0 0 5px rgba(99, 102, 241, 0.5),
+                        0 0 10px rgba(99, 102, 241, 0.5),
+                        0 0 15px rgba(99, 102, 241, 0.5),
+                        0 0 20px rgba(99, 102, 241, 0.5);
+            transition: text-shadow 0.3s ease;
+        }
+        .neon-text:hover {
+            text-shadow: 0 0 10px rgba(99, 102, 241, 0.8),
+                        0 0 20px rgba(99, 102, 241, 0.8),
+                        0 0 30px rgba(99, 102, 241, 0.8),
+                        0 0 40px rgba(99, 102, 241, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="particles-container" id="particles"></div>
+    <div class="dashboard-container">
+        <header class="dashboard-header pulse-4d">
+            <h1 class="neon-text"><i class="fas fa-tachometer-alt"></i> Dashboard General de Proyectos </h1>
+            <div class="header-controls">
+                <div class="mode-selector">
+                    <label for="dashboardModeSelector">Modo:</label>
+                    <select id="dashboardModeSelector">
+                        <option value="agile">Ágil</option>
+                        <option value="traditional">Tradicional</option>
+                        <option value="hybrid" selected>Híbrido</option>
+                    </select>
+                </div>
+                <button id="refreshDashboard" class="btn-refresh"><i class="fas fa-sync-alt"></i> Actualizar</button>
+            </div>
+        </header>
+        <div class="dashboard-content">
+            <!-- Resumen General -->
+            <section class="summary-cards">
+                <div class="summary-card total-projects animate-fadeIn glow-effect" style="animation-delay: 0.1s;">
+                    <div class="card-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Total Proyectos</h3>
+                        <span id="totalProjectsCount">0</span>
+                    </div>
+                </div>
+                <div class="summary-card active-projects animate-fadeIn glow-effect" style="animation-delay: 0.2s;">
+                    <div class="card-icon">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Proyectos Activos</h3>
+                        <span id="activeProjectsCount">0</span>
+                    </div>
+                </div>
+                <div class="summary-card completed-projects animate-fadeIn glow-effect" style="animation-delay: 0.3s;">
+                    <div class="card-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Completados</h3>
+                        <span id="completedProjectsCount">0</span>
+                    </div>
+                </div>
+                <div class="summary-card delayed-projects animate-fadeIn glow-effect" style="animation-delay: 0.4s;">
+                    <div class="card-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Con Retraso</h3>
+                        <span id="delayedProjectsCount">0</span>
+                    </div>
+                </div>
+            </section>
+            <!-- Gráficos principales -->
+            <section class="charts-section">
+                <div class="chart-container animate-fadeIn glow-effect" style="animation-delay: 0.5s;">
+                    <h3 class="neon-text">Distribución de Proyectos por Estado</h3>
+                    <canvas id="projectsStatusChart"></canvas>
+                </div>
+                <div class="chart-container animate-fadeIn glow-effect" style="animation-delay: 0.6s;">
+                    <h3 class="neon-text">Progreso General de Proyectos</h3>
+                    <canvas id="overallProgressChart"></canvas>
+                </div>
+            </section>
+            <!-- Lista de proyectos -->
+            <section class="projects-list-section animate-fadeIn glow-effect" style="animation-delay: 0.7s;">
+                <h2 class="neon-text">Estado de Todos los Proyectos</h2>
+                <div class="projects-table-container">
+                    <table id="projectsTable">
+                        <thead>
+                            <tr>
+                                <th>Proyecto</th>
+                                <th>Progreso</th>
+                                <th>Estado</th>
+                                <th>Tareas</th>
+                                <th>Tiempo</th>
+                                <th>Última Actualización</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectsTableBody">
+                            <!-- Los proyectos se cargarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- Riesgos y Alertas -->
+            <section class="risks-section animate-fadeIn glow-effect" style="animation-delay: 0.8s;">
+                <h2 class="neon-text"><i class="fas fa-exclamation-triangle"></i> Alertas y Riesgos</h2>
+                <div id="risksContainer" class="risks-container">
+                    <!-- Las alertas se cargarán aquí dinámicamente -->
+                </div>
+            </section>
+        </div>
+    </div>
+    <script>
+        class DashboardManager {
+            constructor() {
+                this.projects = JSON.parse(localStorage.getItem('projects')) || [];
+                this.currentMode = localStorage.getItem('projectMethodology') || 'hybrid';
+                this.init();
+            }
+            init() {
+                this.createParticles();
+                this.setupEventListeners();
+                this.renderDashboard();
+                this.initBackgroundEffects();
+            }
+            createParticles() {
+                const container = document.getElementById('particles');
+                const particleCount = 50;
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    // Random size between 3 and 20px
+                    const size = Math.random() * 17 + 3;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    // Random position
+                    particle.style.left = `${Math.random() * 100}%`;
+                    particle.style.top = `${Math.random() * 100}%`;
+                    // Random animation delay and duration
+                    const delay = Math.random() * 10;
+                    const duration = Math.random() * 20 + 10;
+                    particle.style.animationDelay = `${delay}s`;
+                    particle.style.animationDuration = `${duration}s`;
+                    // Random color
+                    const hue = Math.floor(Math.random() * 360);
+                    particle.style.background = `hsla(${hue}, 70%, 70%, 0.6)`;
+                    // Add floating animation
+                    particle.style.animation = `floatParticle ${duration}s ease-in-out ${delay}s infinite`;
+                    container.appendChild(particle);
+                }
+                // Add styles for floating particles
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes floatParticle {
+                        0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.6; }
+                        25% { transform: translate(-20px, -20px) rotate(90deg); opacity: 0.3; }
+                        50% { transform: translate(0, 40px) rotate(180deg); opacity: 0.8; }
+                        75% { transform: translate(20px, -20px) rotate(270deg); opacity: 0.4; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            initBackgroundEffects() {
+                // Add gradient background animation
+                document.body.style.background = 'linear-gradient(-45deg, #667eea, #764ba2, #667eea, #764ba2)';
+                document.body.style.backgroundSize = '400% 400%';
+                document.body.style.animation = 'gradientShift 15s ease infinite';
+                
+                // Add styles for gradient animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes gradientShift {
+                        0% { background-position: 0% 50%; }
+                        50% { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            setupEventListeners() {
+                // Selector de modo
+                const modeSelector = document.getElementById('dashboardModeSelector');
+                if (modeSelector) {
+                    modeSelector.value = this.currentMode;
+                    modeSelector.addEventListener('change', (e) => {
+                        this.animateModeChange();
+                        setTimeout(() => {
+                            this.currentMode = e.target.value;
+                            localStorage.setItem('projectMethodology', this.currentMode);
+                            this.renderDashboard();
+                            this.showNotification('Modo cambiado exitosamente', 'success');
+                        }, 500);
+                    });
+                }
+                // Botón de actualizar
+                const refreshBtn = document.getElementById('refreshDashboard');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', () => {
+                        this.animateRefresh();
+                        setTimeout(() => {
+                            this.projects = JSON.parse(localStorage.getItem('projects')) || [];
+                            this.renderDashboard();
+                            this.showNotification('Dashboard actualizado', 'success');
+                        }, 800);
+                    });
+                }
+            }
+            animateModeChange() {
+                const header = document.querySelector('.dashboard-header');
+                header.style.animation = 'pulse4D 0.5s ease-in-out';
+                setTimeout(() => {
+                    header.style.animation = '';
+                }, 500);
+            }
+            animateRefresh() {
+                const refreshBtn = document.getElementById('refreshDashboard');
+                refreshBtn.style.transform = 'rotate(360deg) scale(1.3)';
+                refreshBtn.style.boxShadow = '0 0 50px rgba(99, 102, 241, 0.8)';
+                setTimeout(() => {
+                    refreshBtn.style.transform = '';
+                    refreshBtn.style.boxShadow = '';
+                }, 1000);
+            }
+            renderDashboard() {
+                this.updateSummaryCards();
+                this.renderCharts();
+                this.renderProjectsTable();
+                this.renderRisks();
+                this.addCardAnimations();
+            }
+            addCardAnimations() {
+                // Añadir animaciones secuenciales a las tarjetas
+                const cards = document.querySelectorAll('.summary-card, .chart-container, .projects-list-section, .risks-section');
+                cards.forEach((card, index) => {
+                    card.style.animation = `fadeIn 0.6s ease-out ${index * 0.1}s both`;
+                });
+                // Estilos para animaciones
+                const style = document.createElement('style');
+                if (!document.getElementById('animations-style')) {
+                    style.id = 'animations-style';
+                    style.textContent = `
+                        @keyframes fadeIn {
+                            from {
+                                opacity: 0;
+                                transform: translateY(30px) rotateX(30deg);
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translateY(0) rotateX(0deg);
+                            }
+                        }
+                        
+                        @keyframes chartReveal {
+                            0% { opacity: 0; transform: scale(0.8) rotateX(45deg); }
+                            100% { opacity: 1; transform: scale(1) rotateX(0deg); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                // Animar gráficos
+                setTimeout(() => {
+                    const charts = document.querySelectorAll('.chart-container');
+                    charts.forEach((chart, index) => {
+                        chart.style.animation = `chartReveal 0.8s ease-out ${0.5 + index * 0.2}s both`;
+                    });
+                }, 100);
+            }
+            updateSummaryCards() {
+                const totalProjects = this.projects.length;
+                const activeProjects = this.projects.filter(p => 
+                    p.tasks && p.tasks.some(t => t.status !== 'completed')
+                ).length;
+                const completedProjects = this.projects.filter(p => 
+                    p.tasks && p.tasks.length > 0 && p.tasks.every(t => t.status === 'completed')
+                ).length;
+                const delayedProjects = this.projects.filter(p => 
+                    p.tasks && p.tasks.some(t => t.status === 'overdue')
+                ).length;
+                // Animar los números con contador
+                this.animateNumber('totalProjectsCount', totalProjects);
+                this.animateNumber('activeProjectsCount', activeProjects);
+                this.animateNumber('completedProjectsCount', completedProjects);
+                this.animateNumber('delayedProjectsCount', delayedProjects);
+            }
+            animateNumber(elementId, targetValue) {
+                const element = document.getElementById(elementId);
+                if (!element) return;
+                const duration = 1500; // 1.5 segundos
+                const startValue = parseInt(element.textContent) || 0;
+                const increment = (targetValue - startValue) / (duration / 16); // 60fps aprox
+                let currentValue = startValue;
+                const startTime = performance.now();
+                const updateNumber = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    if (progress < 1) {
+                        currentValue = startValue + (targetValue - startValue) * progress;
+                        element.textContent = Math.floor(currentValue);
+                        requestAnimationFrame(updateNumber);
+                    } else {
+                        element.textContent = targetValue;
+                        // Efecto de "pop" al finalizar
+                        element.style.transform = 'scale(1.3)';
+                        element.style.textShadow = '0 0 15px rgba(99, 102, 241, 0.5)';
+                        setTimeout(() => {
+                            element.style.transform = '';
+                            element.style.textShadow = '';
+                        }, 500);
+                    }
+                };
+                requestAnimationFrame(updateNumber);
+            }
+            renderCharts() {
+                // Añadir efecto de carga
+                const chartContainers = document.querySelectorAll('.chart-container');
+                chartContainers.forEach(container => {
+                    container.style.opacity = '0.5';
+                    container.style.filter = 'blur(5px)';
+                });
+                setTimeout(() => {
+                    this.renderProjectsStatusChart();
+                    this.renderOverallProgressChart();
+                    // Restaurar apariencia normal
+                    chartContainers.forEach(container => {
+                        container.style.opacity = '1';
+                        container.style.filter = 'blur(0)';
+                    });
+                }, 500);
+            }
+            renderProjectsStatusChart() {
+    const ctx = document.getElementById('projectsStatusChart');
+    if (!ctx) return;
+    // Destruir gráfica anterior si existe
+    if (this.projectsStatusChart) {
+        this.projectsStatusChart.destroy();
+    }
+
+    // Calcular proyectos con retraso
+    const delayedProjects = this.projects.filter(p => 
+        p.tasks && p.tasks.some(t => t.status === 'overdue')
+    ).length;
+
+    const activeProjects = this.projects.filter(p => 
+        p.tasks && p.tasks.some(t => t.status !== 'completed')
+    ).length;
+
+    const completedProjects = this.projects.filter(p => 
+        p.tasks && p.tasks.length > 0 && p.tasks.every(t => t.status === 'completed')
+    ).length;
+
+    const planningProjects = this.projects.filter(p => 
+        !p.tasks || p.tasks.length === 0
+    ).length;
+
+    // Ajustar el conteo de proyectos activos para que no incluya los que están en retraso
+    // (Opcional, dependiendo de si quieres que "Activos" y "Con Retraso" sean mutuamente excluyentes)
+    // const adjustedActiveProjects = activeProjects - delayedProjects;
+
+    this.projectsStatusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Activos', 'Completados', 'En Planificación', 'Con Retraso'], // Añadida la nueva etiqueta
+            datasets: [{
+                data: [activeProjects, completedProjects, planningProjects, delayedProjects], // Añadido el valor
+                backgroundColor: [
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(239, 68, 68, 0.8)' // Nuevo color para "Con Retraso"
+                ],
+                borderColor: [
+                    '#10b981',
+                    '#8b5cf6',
+                    '#3b82f6',
+                    '#ef4444' // Nuevo color de borde
+                ],
+                borderWidth: 2,
+                hoverOffset: 20
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: {
+                            size: 14,
+                            weight: '600'
+                        },
+                        color: '#1f2937',
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
+                    displayColors: true,
+                    boxPadding: 5
+                }
+            },
+            animation: {
+                animateScale: true,
+                animateRotate: true,
+                duration: 2000,
+                easing: 'easeOutQuart'
+            }
+        }
+    });
+}
+            renderOverallProgressChart() {
+                const ctx = document.getElementById('overallProgressChart');
+                if (!ctx) return;
+                // Destruir gráfica anterior si existe
+                if (this.overallProgressChart) {
+                    this.overallProgressChart.destroy();
+                }
+                // Calcular el progreso general de todos los proyectos
+                let totalTasks = 0;
+                let completedTasks = 0;
+                this.projects.forEach(project => {
+                    if (project.tasks && project.tasks.length > 0) {
+                        totalTasks += project.tasks.length;
+                        completedTasks += project.tasks.filter(t => t.status === 'completed').length;
+                    }
+                });
+                const progressPercentage = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+                // Determinar color según progreso
+                let bgColor, borderColor;
+                if (progressPercentage > 70) {
+                    bgColor = 'rgba(16, 185, 129, 0.8)';
+                    borderColor = '#10b981';
+                } else if (progressPercentage > 40) {
+                    bgColor = 'rgba(245, 158, 11, 0.8)';
+                    borderColor = '#f59e0b';
+                } else {
+                    bgColor = 'rgba(239, 68, 68, 0.8)';
+                    borderColor = '#ef4444';
+                }
+                this.overallProgressChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Progreso General'],
+                        datasets: [{
+                            label: 'Porcentaje Completado',
+                            data: [progressPercentage],
+                            backgroundColor: bgColor,
+                            borderColor: borderColor,
+                            borderWidth: 2,
+                            borderRadius: 10,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#6b7280',
+                                    font: {
+                                        size: 12,
+                                        weight: '600'
+                                    },
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Porcentaje de Completado',
+                                    color: '#1f2937',
+                                    font: {
+                                        size: 14,
+                                        weight: '600'
+                                    }
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#6b7280',
+                                    font: {
+                                        size: 12,
+                                        weight: '600'
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(31, 41, 55, 0.9)',
+                                titleColor: '#ffffff',
+                                bodyColor: '#ffffff',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Progreso: ${context.raw.toFixed(2)}%`;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 2000,
+                            easing: 'easeOutQuart'
+                        }
+                    }
+                });
+            }
+            renderProjectsTable() {
+                const tbody = document.getElementById('projectsTableBody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                if (this.projects.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.7);">
+                                <i class="fas fa-folder-open fa-3x" style="margin-bottom: 20px; display: block; color: rgba(255, 255, 255, 0.3);"></i>
+                                <div style="font-size: 24px; font-weight: 700; margin-bottom: 15px; color: #fff;">No hay proyectos registrados</div>
+                                <div style="font-size: 16px; color: rgba(255, 255, 255, 0.5);">Crea tu primer proyecto para comenzar</div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                // Animar filas secuencialmente
+                this.projects.forEach((project, index) => {
+                    const totalTasks = project.tasks ? project.tasks.length : 0;
+                    const completedTasks = project.tasks ? 
+                        project.tasks.filter(t => t.status === 'completed').length : 0;
+                    const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+                    // Determinar el estado del proyecto
+                    let status = 'planning';
+                    let statusText = 'Planificación';
+                    if (totalTasks > 0) {
+                        if (progress === 100) {
+                            status = 'completed';
+                            statusText = 'Completado';
+                        } else if (project.tasks.some(t => t.status === 'overdue')) {
+                            status = 'delayed';
+                            statusText = 'Con Retraso';
+                        } else {
+                            status = 'active';
+                            statusText = 'Activo';
+                        }
+                    }
+                    // Calcular tiempo total estimado y registrado
+                    const totalEstimated = project.tasks ? 
+                        project.tasks.reduce((sum, task) => sum + (task.estimatedTime || 0), 0) : 0;
+                    const totalLogged = project.tasks ? 
+                        project.tasks.reduce((sum, task) => sum + (task.timeLogged || 0), 0) : 0;
+                    // Encontrar la última fecha de actualización
+                    let lastUpdate = 'Nunca';
+                    if (project.tasks && project.tasks.length > 0) {
+                        const dates = project.tasks
+                            .map(t => t.timeHistory && t.timeHistory.length > 0 ? 
+                                t.timeHistory[t.timeHistory.length - 1].date : null)
+                            .filter(d => d);
+                        if (dates.length > 0) {
+                            lastUpdate = new Date(Math.max(...dates.map(d => new Date(d)))).toLocaleDateString('es-ES', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+                    }
+                    const row = document.createElement('tr');
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(-50px)';
+                    row.style.transition = `all 0.5s ease-out ${index * 0.1}s`;
+                    setTimeout(() => {
+                        row.style.opacity = '1';
+                        row.style.transform = 'translateX(0)';
+                    }, 100);
+                    row.innerHTML = `
+                        <td>
+                            <strong style="color: #1f2937; font-size: 16px;">${project.name}</strong>
+                            ${project.totalProjectTime ? `<br><small style="color: rgba(31, 41, 55, 0.7);">Tiempo total: ${project.totalProjectTime}h</small>` : ''}
+                        </td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%; background: ${progress > 70 ? '#10b981' : progress > 40 ? '#f59e0b' : '#ef4444'};"></div>
+                            </div>
+                            <small style="color: rgba(31, 41, 55, 0.8);">${progress.toFixed(0)}% completado</small>
+                        </td>
+                        <td>
+                            <span class="status-badge status-${status}">${statusText}</span>
+                        </td>
+                        <td style="color: rgba(31, 41, 55, 0.9);">${completedTasks}/${totalTasks} tareas</td>
+                        <td>
+                            <small style="color: rgba(31, 41, 55, 0.7);">Estimado: ${totalEstimated.toFixed(1)}h</small><br>
+                            <small style="color: rgba(31, 41, 55, 0.7);">Registrado: ${totalLogged.toFixed(1)}h</small>
+                        </td>
+                        <td style="color: rgba(31, 41, 55, 0.8);">${lastUpdate}</td>
+                        <td>
+                            <button class="btn-view" onclick="dashboard.openProject(${index})">
+                                <i class="fas fa-external-link-alt"></i> Abrir
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+            renderRisks() {
+                const container = document.getElementById('risksContainer');
+                if (!container) return;
+                container.innerHTML = '';
+                // Encontrar proyectos con retraso
+                const delayedProjects = this.projects.filter(p => 
+                    p.tasks && p.tasks.some(t => t.status === 'overdue')
+                );
+                // Encontrar proyectos sin progreso
+                const stagnantProjects = this.projects.filter(p => 
+                    p.tasks && p.tasks.length > 0 && 
+                    !p.tasks.some(t => t.status === 'completed') &&
+                    !p.tasks.some(t => t.status === 'overdue')
+                );
+                // Encontrar proyectos sin tareas
+                const emptyProjects = this.projects.filter(p => 
+                    !p.tasks || p.tasks.length === 0
+                );
+                let riskIndex = 0;
+                // Agregar alertas para proyectos con retraso
+                delayedProjects.forEach((project, index) => {
+                    const overdueTasks = project.tasks.filter(t => t.status === 'overdue').length;
+                    const riskItem = document.createElement('div');
+                    riskItem.className = 'risk-item risk-high';
+                    riskItem.style.opacity = '0';
+                    riskItem.style.transform = 'translateY(30px)';
+                    riskItem.style.transition = `all 0.5s ease-out ${(riskIndex * 0.1) + 0.3}s`;
+                    setTimeout(() => {
+                        riskItem.style.opacity = '1';
+                        riskItem.style.transform = 'translateY(0)';
+                    }, 100);
+                    riskItem.innerHTML = `
+                        <h4><i class="fas fa-exclamation-circle"></i> Proyecto con retraso</h4>
+                        <p><strong style="color: #1f2937;">${project.name}</strong> tiene ${overdueTasks} tarea(s) rezagada(s).</p>
+                    `;
+                    container.appendChild(riskItem);
+                    riskIndex++;
+                });
+                // Agregar alertas para proyectos sin progreso
+                if (stagnantProjects.length > 0) {
+                    const riskItem = document.createElement('div');
+                    riskItem.className = 'risk-item risk-medium';
+                    riskItem.style.opacity = '0';
+                    riskItem.style.transform = 'translateY(30px)';
+                    riskItem.style.transition = `all 0.5s ease-out ${(riskIndex * 0.1) + 0.3}s`;
+                    setTimeout(() => {
+                        riskItem.style.opacity = '1';
+                        riskItem.style.transform = 'translateY(0)';
+                    }, 100);
+                    riskItem.innerHTML = `
+                        <h4><i class="fas fa-info-circle"></i> Proyectos sin progreso</h4>
+                        <p>${stagnantProjects.length} proyecto(s) no ha(n) comenzado su ejecución.</p>
+                    `;
+                    container.appendChild(riskItem);
+                    riskIndex++;
+                }
+                // Agregar alertas para proyectos sin tareas
+                if (emptyProjects.length > 0) {
+                    const riskItem = document.createElement('div');
+                    riskItem.className = 'risk-item risk-low';
+                    riskItem.style.opacity = '0';
+                    riskItem.style.transform = 'translateY(30px)';
+                    riskItem.style.transition = `all 0.5s ease-out ${(riskIndex * 0.1) + 0.3}s`;
+                    setTimeout(() => {
+                        riskItem.style.opacity = '1';
+                        riskItem.style.transform = 'translateY(0)';
+                    }, 100);
+                    riskItem.innerHTML = `
+                        <h4><i class="fas fa-clipboard-list"></i> Proyectos en planificación</h4>
+                        <p>${emptyProjects.length} proyecto(s) no tiene(n) tareas definidas.</p>
+                    `;
+                    container.appendChild(riskItem);
+                    riskIndex++;
+                }
+                // Si no hay riesgos
+                if (container.children.length === 0) {
+                    const riskItem = document.createElement('div');
+                    riskItem.className = 'risk-item risk-low';
+                    riskItem.style.opacity = '0';
+                    riskItem.style.transform = 'translateY(30px)';
+                    riskItem.style.transition = 'all 0.5s ease-out 0.3s';
+                    setTimeout(() => {
+                        riskItem.style.opacity = '1';
+                        riskItem.style.transform = 'translateY(0)';
+                    }, 100);
+                    riskItem.innerHTML = `
+                        <h4><i class="fas fa-check-circle"></i> Sin alertas críticas</h4>
+                        <p style="color: rgba(31, 41, 55, 0.8);">Todos los proyectos están en buen estado.</p>
+                    `;
+                    container.appendChild(riskItem);
+                }
+            }
+            openProject(index) {
+                // Animación de transición
+                const btn = event.target.closest('.btn-view');
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.7';
+                }
+                // Guardar el índice del proyecto a abrir
+                localStorage.setItem('currentProjectIndex', index);
+                // Simular carga antes de redirigir
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1200);
+            }
+            showNotification(message, type = 'info') {
+                // Crear notificación con animación mejorada
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                notification.innerHTML = `
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.remove()">&times;</button>
+                `;
+                document.body.appendChild(notification);
+                // Trigger de animación
+                setTimeout(() => {
+                    notification.style.animation = 'slideIn 0.5s forwards';
+                }, 100);
+                // Auto-eliminar después de 3 segundos
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.5s forwards';
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.remove();
+                        }
+                    }, 500);
+                }, 3000);
+            }
+        }
+        // Inicializar el dashboard cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            // Añadir estilos de animación si no existen
+            if (!document.getElementById('dashboard-animations')) {
+                const style = document.createElement('style');
+                style.id = 'dashboard-animations';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(120%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(120%); opacity: 0; }
+                    }
+                    
+                    @keyframes fadeIn {
+                        from {
+                            opacity: 0;
+                            transform: translateY(30px) rotateX(30deg);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0) rotateX(0deg);
+                        }
+                    }
+                    
+                    @keyframes chartReveal {
+                        0% { opacity: 0; transform: scale(0.8) rotateX(45deg); }
+                        100% { opacity: 1; transform: scale(1) rotateX(0deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            window.dashboard = new DashboardManager();
+        });
+        // También actualizar cada 30 segundos
+        setInterval(() => {
+            if (window.dashboard) {
+                window.dashboard.projects = JSON.parse(localStorage.getItem('projects')) || [];
+                window.dashboard.renderDashboard();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
