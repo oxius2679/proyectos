@@ -27,7 +27,15 @@ module.exports = (client) => {
         process.env.JWT_SECRET,
         { expiresIn: '1d' }
       );
-      res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+      res.json({
+  token,
+  user: {
+    id: user._id,
+    name: user.name || '', // 👈 Si es null, envía una cadena vacía
+    email: user.email,
+    role: user.role || 'viewer' // 👈 Asegúrate de que role también tenga un valor por defecto
+  }
+});
     } catch (error) {
       console.error('❌ Error en login:', error); // 👈 Añade este log para ver el error real
       res.status(500).json({ error: 'Error del servidor' });
