@@ -110,7 +110,7 @@ async function startServer() {
     httpServer.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Backend corriendo en puerto ${PORT}`);
       console.log('🔐 Rutas protegidas con JWT');
-      console.log('🔌 WebSockets activos');
+      console.log('🔌 WebSockets activos');  // ← ¡ESTA LÍNEA DEBE ESTAR!
     });
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
