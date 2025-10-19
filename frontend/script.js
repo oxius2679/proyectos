@@ -122,30 +122,33 @@ async function safeLoad() {
   console.group('📥 Cargando datos desde backend o localStorage');
   let loadedData = null;
 
+  // ✅ Si el backend está disponible, CARGA SIEMPRE desde ahí
   if (await checkBackendStatus()) {
     try {
       const response = await fetch(`${API_URL}/projects`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+        headers: { 'Authorization': `Bearer ${authToken}` }
       });
       if (response.ok) {
         loadedData = await response.json();
         console.log('✅ Datos cargados desde MongoDB');
         window.useBackend = true;
+        // ✅ Guardar en localStorage como respaldo, PERO USAR los del backend
+        localStorage.setItem('projects', JSON.stringify(loadedData.projects));
+        localStorage.setItem('currentProjectIndex', loadedData.currentProjectIndex || 0);
       }
     } catch (error) {
       console.warn('⚠️ Error cargando desde backend');
     }
   }
 
+  // ❌ Solo usar localStorage si el backend NO está disponible
   if (!loadedData || !loadedData.projects) {
-    console.log('🔄 Usando datos de localStorage');
+    console.log('🔄 Backend no disponible, usando localStorage');
     const savedProjects = localStorage.getItem('projects');
     if (savedProjects) {
       loadedData = {
         projects: JSON.parse(savedProjects),
-        currentProjectIndex: 0
+        currentProjectIndex: parseInt(localStorage.getItem('currentProjectIndex') || '0')
       };
     }
   }
@@ -158,11 +161,9 @@ async function safeLoad() {
       createNewProject();
     }
   }
-
   console.groupEnd();
   return !!loadedData;
 }
-
 
 
 /**************************************
