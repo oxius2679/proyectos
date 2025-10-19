@@ -122,7 +122,7 @@ async function safeLoad() {
   console.group('📥 Cargando datos desde backend o localStorage');
   let loadedData = null;
 
-  // Siempre intenta cargar desde el backend primero
+  // Siempre intentar cargar desde el backend primero
   if (await checkBackendStatus()) {
     try {
       const response = await fetch(`${API_URL}/projects`, {
@@ -138,11 +138,11 @@ async function safeLoad() {
         console.warn('⚠️ Backend devolvió un error:', response.status);
       }
     } catch (error) {
-      console.error('❌ Error crítico al cargar desde backend:', error);
+      console.warn('⚠️ Error cargando desde backend:', error.message);
     }
   }
 
-  // Si no se pudieron cargar los datos del backend, usa localStorage como respaldo
+  // Si no se pudieron cargar los datos del backend, usar localStorage como respaldo
   if (!loadedData || !loadedData.projects) {
     console.log('🔄 Usando datos de localStorage como respaldo');
     const savedProjects = localStorage.getItem('projects');
@@ -154,7 +154,7 @@ async function safeLoad() {
     }
   }
 
-  // Si aún no hay datos, crea un proyecto inicial
+  // Si aún no hay datos, crear un proyecto inicial
   if (loadedData && loadedData.projects) {
     projects = loadedData.projects;
     currentProjectIndex = loadedData.currentProjectIndex || 0;
@@ -166,7 +166,6 @@ async function safeLoad() {
   console.groupEnd();
   return !!loadedData;
 }
-
 /**************************************
  * SISTEMA DE METODOLOGÍAS HÍBRIDAS - PASO 1 *
  **************************************/
