@@ -82,13 +82,9 @@ async function checkBackendStatus() {
 
 // Función de respaldo para guardar
 async function safeSave() {
-  console.group('📤 Guardando datos en backend o localStorage');
-  
-  // Siempre guardar en localStorage
-  localStorage.setItem('projects', JSON.stringify(projects));
-  console.log('📦 Datos guardados en localStorage');
+  console.group('📤 Guardando datos en backend');
 
-  // Intentar guardar en backend
+  // Siempre guardar en el backend
   if (window.useBackend && authToken) {
     try {
       const response = await fetch(`${API_URL}/projects`, {
@@ -109,7 +105,7 @@ async function safeSave() {
         console.warn('⚠️ Error guardando en backend');
       }
     } catch (error) {
-      console.warn('⚠️ Error de conexión, datos solo en localStorage');
+      console.warn('⚠️ Error de conexión, datos no guardados');
       window.useBackend = false;
     }
   }
@@ -117,6 +113,7 @@ async function safeSave() {
   console.groupEnd();
   return true;
 }
+
 // Función de respaldo para cargar
 async function safeLoad() {
   console.group('📥 Cargando datos desde backend o localStorage');
