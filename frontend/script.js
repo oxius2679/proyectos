@@ -58,7 +58,7 @@ console.log('🔧 Iniciando sistema de validación...');
 
 // Variable para controlar el modo
 let useBackend = true;
-const API_URL = 'https://mi-sistema-proyectos-backend-1.onrender.com';
+const API_URL = 'https://proyectos-backend-lx0a.onrender.com';
 
 // Función para verificar estado del backend
 async function checkBackendStatus() {
