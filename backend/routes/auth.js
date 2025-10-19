@@ -2,6 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken'); // 👈 ¡Esta línea es obligatoria!
+
 
 // Recibe el cliente como parámetro
 module.exports = (client) => {
