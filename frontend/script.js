@@ -82,9 +82,13 @@ async function checkBackendStatus() {
 
 // Función de respaldo para guardar
 async function safeSave() {
-  console.group('📤 Guardando datos en backend');
+  console.group('📤 Guardando datos en backend o localStorage');
+  
+  // Siempre guardar en localStorage
+  localStorage.setItem('projects', JSON.stringify(projects));
+  console.log('📦 Datos guardados en localStorage');
 
-  // Siempre guardar en el backend
+  // Intentar guardar en backend
   if (window.useBackend && authToken) {
     try {
       const response = await fetch(`${API_URL}/projects`, {
@@ -105,7 +109,7 @@ async function safeSave() {
         console.warn('⚠️ Error guardando en backend');
       }
     } catch (error) {
-      console.warn('⚠️ Error de conexión, datos no guardados');
+      console.warn('⚠️ Error de conexión, datos solo en localStorage');
       window.useBackend = false;
     }
   }
@@ -113,56 +117,55 @@ async function safeSave() {
   console.groupEnd();
   return true;
 }
-
 // Función de respaldo para cargar
 async function safeLoad() {
   console.group('📥 Cargando datos desde backend o localStorage');
   let loadedData = null;
 
-  // Siempre intentar cargar desde el backend primero
+  // ✅ Si el backend está disponible, CARGA SIEMPRE desde ahí
   if (await checkBackendStatus()) {
     try {
       const response = await fetch(`${API_URL}/projects`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+        headers: { 'Authorization': `Bearer ${authToken}` }
       });
       if (response.ok) {
         loadedData = await response.json();
         console.log('✅ Datos cargados desde MongoDB');
         window.useBackend = true;
-      } else {
-        console.warn('⚠️ Backend devolvió un error:', response.status);
+        // ✅ Guardar en localStorage como respaldo, PERO USAR los del backend
+        localStorage.setItem('projects', JSON.stringify(loadedData.projects));
+        localStorage.setItem('currentProjectIndex', loadedData.currentProjectIndex || 0);
       }
     } catch (error) {
-      console.warn('⚠️ Error cargando desde backend:', error.message);
+      console.warn('⚠️ Error cargando desde backend');
     }
   }
 
-  // Si no se pudieron cargar los datos del backend, usar localStorage como respaldo
+  // ❌ Solo usar localStorage si el backend NO está disponible
   if (!loadedData || !loadedData.projects) {
-    console.log('🔄 Usando datos de localStorage como respaldo');
+    console.log('🔄 Backend no disponible, usando localStorage');
     const savedProjects = localStorage.getItem('projects');
     if (savedProjects) {
       loadedData = {
         projects: JSON.parse(savedProjects),
-        currentProjectIndex: 0
+        currentProjectIndex: parseInt(localStorage.getItem('currentProjectIndex') || '0')
       };
     }
   }
 
-  // Si aún no hay datos, crear un proyecto inicial
   if (loadedData && loadedData.projects) {
     projects = loadedData.projects;
     currentProjectIndex = loadedData.currentProjectIndex || 0;
   } else {
-    console.log('📝 No hay datos, creando proyecto inicial...');
-    createNewProject();
+    if (projects.length === 0) {
+      createNewProject();
+    }
   }
-
   console.groupEnd();
   return !!loadedData;
 }
+
+
 /**************************************
  * SISTEMA DE METODOLOGÍAS HÍBRIDAS - PASO 1 *
  **************************************/
