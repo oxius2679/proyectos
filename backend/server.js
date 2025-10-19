@@ -3,6 +3,15 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 require('dotenv').config();
 
+
+// === AGREGAR ESTAS 2 LÍNEAS NUEVAS ===
+const { createServer } = require('http');
+const { Server } = require('socket.io');
+// =====================================
+
+
+
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -81,23 +90,33 @@ app.post('/api/projects', auth, async (req, res) => {
 });
 
 // === Iniciar servidor ===
+// === CREAR SERVIDOR HTTP CON WEBSOCKETS ===
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: ["https://starlit-phoenix-8ff1bb.netlify.app", "http://localhost:8000"],
+    methods: ["GET", "POST"]
+  }
+});
+
+// === Iniciar servidor ===
 async function startServer() {
   try {
     await client.connect();
     await client.db('admin').command({ ping: 1 });
     console.log('✅ Conectado a MongoDB Atlas');
 
-    // ✅ SOLO UNA LLAMADA A app.listen(), con '0.0.0.0'
-    app.listen(PORT, '0.0.0.0', () => {
+    // ✅ REEMPLAZAR app.listen() POR httpServer.listen()
+    httpServer.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Backend corriendo en puerto ${PORT}`);
       console.log('🔐 Rutas protegidas con JWT');
+      console.log('🔌 WebSockets activos');
     });
   } catch (error) {
     console.error('❌ Error al iniciar el servidor:', error);
     process.exit(1);
   }
 }
-
 // === Cierre limpio ===
 process.on('SIGINT', async () => {
   console.log('🛑 Cerrando conexión con MongoDB...');
@@ -106,5 +125,32 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// === Iniciar ===
+
+// === SISTEMA DE WEBSOCKETS PARA TIEMPO REAL ===
+io.on('connection', (socket) => {
+  console.log('🔗 Usuario conectado:', socket.id);
+
+  // Unirse a una "sala" por proyecto
+  socket.on('join-project', (projectId) => {
+    socket.join(`project-${projectId}`);
+    console.log(`👥 Usuario ${socket.id} unido a proyecto ${projectId}`);
+  });
+
+  // Escuchar cambios de tareas
+  socket.on('task-changed', (data) => {
+    // Reenviar a TODOS los usuarios en el mismo proyecto
+    socket.to(`project-${data.projectId}`).emit('task-updated', data);
+    console.log('🔄 Cambio de tarea notificado:', data.taskId);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('🔌 Usuario desconectado:', socket.id);
+  });
+});
+
+// Hacer el io disponible para las rutas (opcional, por si lo necesitas después)
+app.set('io', io);
+
+// === Iniciar servidor ===
 startServer();
+
