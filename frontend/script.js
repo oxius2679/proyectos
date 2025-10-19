@@ -216,6 +216,68 @@ let currentProjectIndex = 0;
 let authToken = localStorage.getItem('authToken');
 
 
+// === SISTEMA DE TIEMPO REAL ===
+let socket = null;
+
+function initWebSocket() {
+  // Conectar al servidor de WebSockets
+  socket = io('https://proyectos-backend-lx0a.onrender.com');
+  
+  socket.on('connect', () => {
+    console.log('🔗 Conectado al servidor en tiempo real');
+    
+    // Unirse al proyecto actual
+    if (currentProjectIndex !== null) {
+      socket.emit('join-project', currentProjectIndex);
+    }
+  });
+  
+  socket.on('task-updated', (data) => {
+    console.log('🔄 Cambio recibido:', data);
+    // Actualizar la interfaz automáticamente
+    refreshCurrentView();
+    showNotification(`📢 ${data.userName || 'Alguien'} actualizó: ${data.taskName}`);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('🔌 Desconectado del servidor en tiempo real');
+  });
+}
+
+function refreshCurrentView() {
+  const activeView = getActiveView();
+  console.log('🔄 Actualizando vista:', activeView);
+  
+  switch(activeView) {
+    case 'board':
+      renderKanbanTasks();
+      break;
+    case 'list':
+      renderListTasks();
+      break;
+    case 'dashboard':
+      renderDashboard();
+      break;
+    case 'calendar':
+      renderCalendar();
+      break;
+    case 'gantt':
+      renderGanttChart();
+      break;
+    case 'reports':
+      generateReports();
+      break;
+    default:
+      renderKanbanTasks();
+  }
+  
+  // Actualizar estadísticas siempre
+  updateStatistics();
+  generatePieChart(getStats());
+  updateProjectProgress();
+}
+
+
 // === FUNCIONES DE AUTENTICACIÓN (ÁMBITO GLOBAL) ===
 function showRegisterForm() {
   document.getElementById('loginForm').style.display = 'none';
@@ -2587,7 +2649,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Inicializar el resto de la aplicación
     setupEventListeners();
 
-
+// INICIAR WEBSOCKETS DESPUÉS DE LA AUTENTICACIÓN
+  if (authToken) {
+    initWebSocket();
+  }
+});
 
 
 
