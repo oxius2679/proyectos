@@ -1,0 +1,60 @@
+<!-- Contenido para incluir en tu dashboard -->
+<div class="dashboard-row">
+  <div class="dashboard-card wide">
+    <h3>Seguimiento de Horas</h3>
+    
+    <div class="time-tracking-filters">
+      <div class="filter-group">
+        <label>Año:</label>
+        <select id="timeTrackingYear">
+          <option value="2023">2023</option>
+          <option value="2024">2024</option>
+          <option value="2025" selected>2025</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Mes:</label>
+        <select id="timeTrackingMonth">
+          <option value="all">Todos</option>
+          <!-- Meses... -->
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Proyecto:</label>
+        <select id="timeTrackingProject">
+          <option value="all">Todos</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Asignado:</label>
+        <select id="timeTrackingAssignee">
+          <option value="all">Todos</option>
+        </select>
+      </div>
+      
+      <button id="applyTimeTrackingFilters" class="blue-btn">Aplicar</button>
+    </div>
+    
+    <div class="time-tracking-chart-container">
+      <canvas id="timeTrackingChart"></canvas>
+    </div>
+    
+    <div class="time-tracking-table-container">
+      <table class="time-tracking-table">
+        <thead>
+          <tr>
+            <th>Asignado</th>
+            <th>Proyecto</th>
+            <th>Horas</th>
+            <th>Promedio/día</th>
+            <th>Último registro</th>
+          </tr>
+        </thead>
+        <tbody id="timeTrackingTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
