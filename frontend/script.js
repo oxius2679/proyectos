@@ -5499,5 +5499,5 @@ document.addEventListener('DOMContentLoaded', () => {
       sidebar.classList.toggle('hidden');
     });
   }
-}
+
 
