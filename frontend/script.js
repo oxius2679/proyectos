@@ -256,55 +256,82 @@ function initWebSocket() {
 }
 
 function refreshCurrentView() {
-  console.log('🔄 Sincronizando datos desde la base de datos...');
+  console.log('🔄 Actualizando vista por cambio en tiempo real...');
   
-  // 🔥 FORZAR CARGA DESDE LA BASE DE DATOS COMPARTIDA
-  safeLoad().then(() => {
-    console.log('✅ Datos sincronizados desde MongoDB');
-    
-    try {
-      if (typeof getActiveView !== 'function') return;
+  try {
+    // Solo sincronizar con base de datos si el backend está disponible
+    if (window.useBackend && authToken) {
+      console.log('🔄 Sincronizando con base de datos...');
       
-      const activeView = getActiveView();
-      console.log('🔄 Actualizando vista:', activeView);
-      
-      switch(activeView) {
-        case 'board':
-          if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
-          break;
-        case 'list':
-          if (typeof renderListTasks === 'function') renderListTasks();
-          break;
-        case 'dashboard':
-          if (typeof renderDashboard === 'function') renderDashboard();
-          break;
-        case 'calendar':
-          if (typeof renderCalendar === 'function') renderCalendar();
-          break;
-        case 'gantt':
-          if (typeof renderGanttChart === 'function') renderGanttChart();
-          break;
-        case 'reports':
-          if (typeof generateReports === 'function') generateReports();
-          break;
-        default:
-          if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
-      }
-      
-      // Actualizar estadísticas
-      if (typeof updateStatistics === 'function') updateStatistics();
-      if (typeof generatePieChart === 'function' && typeof getStats === 'function') {
-        generatePieChart(getStats());
-      }
-      if (typeof updateProjectProgress === 'function') updateProjectProgress();
-      
-    } catch (error) {
-      console.error('❌ Error actualizando vista:', error);
+      // Cargar datos frescos desde MongoDB
+      fetch(`${API_URL}/api/projects`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.projects) {
+          projects = data.projects;
+          console.log('✅ Datos sincronizados desde MongoDB');
+        }
+        updateViewAfterSync();
+      })
+      .catch(error => {
+        console.warn('⚠️ No se pudo sincronizar, usando datos locales');
+        updateViewAfterSync();
+      });
+    } else {
+      // Si no hay backend, actualizar directamente
+      updateViewAfterSync();
     }
-  }).catch(error => {
-    console.error('❌ Error sincronizando datos:', error);
-  });
+  } catch (error) {
+    console.error('❌ Error en refreshCurrentView:', error);
+    updateViewAfterSync(); // Fallback seguro
+  }
 }
+
+function updateViewAfterSync() {
+  try {
+    if (typeof getActiveView !== 'function') return;
+    
+    const activeView = getActiveView();
+    console.log('🔄 Renderizando vista:', activeView);
+    
+    switch(activeView) {
+      case 'board':
+        if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
+        break;
+      case 'list':
+        if (typeof renderListTasks === 'function') renderListTasks();
+        break;
+      case 'dashboard':
+        if (typeof renderDashboard === 'function') renderDashboard();
+        break;
+      case 'calendar':
+        if (typeof renderCalendar === 'function') renderCalendar();
+        break;
+      case 'gantt':
+        if (typeof renderGanttChart === 'function') renderGanttChart();
+        break;
+      case 'reports':
+        if (typeof generateReports === 'function') generateReports();
+        break;
+      default:
+        if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
+    }
+    
+    // Actualizar estadísticas
+    if (typeof updateStatistics === 'function') updateStatistics();
+    if (typeof generatePieChart === 'function' && typeof getStats === 'function') {
+      generatePieChart(getStats());
+    }
+    if (typeof updateProjectProgress === 'function') updateProjectProgress();
+    
+  } catch (error) {
+    console.error('❌ Error en updateViewAfterSync:', error);
+  }
+}
+
+
 // === FUNCIONES DE AUTENTICACIÓN (ÁMBITO GLOBAL) ===
 function showRegisterForm() {
   document.getElementById('loginForm').style.display = 'none';
