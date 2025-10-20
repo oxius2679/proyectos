@@ -217,66 +217,91 @@ let authToken = localStorage.getItem('authToken');
 
 
 // === SISTEMA DE TIEMPO REAL ===
-let socket = null;
+let tiempoRealSocket = null;
 
 function initWebSocket() {
-  // Conectar al servidor de WebSockets
-  socket = io('https://proyectos-backend-lx0a.onrender.com');
-  
-  socket.on('connect', () => {
-    console.log('🔗 Conectado al servidor en tiempo real');
-    
-    // Unirse al proyecto actual
-    if (currentProjectIndex !== null) {
-      socket.emit('join-project', currentProjectIndex);
+  try {
+    // Verificar que io esté disponible
+    if (typeof io === 'undefined') {
+      console.warn('⚠️ Socket.io no está cargado aún');
+      setTimeout(initWebSocket, 1000); // Reintentar en 1 segundo
+      return;
     }
-  });
-  
-  socket.on('task-updated', (data) => {
-    console.log('🔄 Cambio recibido:', data);
-    // Actualizar la interfaz automáticamente
-    refreshCurrentView();
-    showNotification(`📢 ${data.userName || 'Alguien'} actualizó: ${data.taskName}`);
-  });
-  
-  socket.on('disconnect', () => {
-    console.log('🔌 Desconectado del servidor en tiempo real');
-  });
+    
+    console.log('🔄 Iniciando conexión WebSocket...');
+    tiempoRealSocket = io('https://proyectos-backend-lx0a.onrender.com');
+    
+    tiempoRealSocket.on('connect', () => {
+      console.log('🔗 Conectado al servidor en tiempo real');
+      
+      if (currentProjectIndex !== null && currentProjectIndex !== undefined) {
+        tiempoRealSocket.emit('join-project', currentProjectIndex);
+        console.log('👥 Unido al proyecto:', currentProjectIndex);
+      }
+    });
+    
+    tiempoRealSocket.on('task-updated', (data) => {
+      console.log('🔄 Cambio recibido:', data);
+      refreshCurrentView();
+      if (typeof showNotification === 'function') {
+        showNotification(`📢 ${data.userName || 'Alguien'} actualizó: ${data.taskName}`);
+      }
+    });
+    
+    tiempoRealSocket.on('disconnect', () => {
+      console.log('🔌 Desconectado del servidor en tiempo real');
+    });
+    
+  } catch (error) {
+    console.error('❌ Error iniciando WebSockets:', error);
+  }
 }
 
 function refreshCurrentView() {
-  const activeView = getActiveView();
-  console.log('🔄 Actualizando vista:', activeView);
-  
-  switch(activeView) {
-    case 'board':
-      renderKanbanTasks();
-      break;
-    case 'list':
-      renderListTasks();
-      break;
-    case 'dashboard':
-      renderDashboard();
-      break;
-    case 'calendar':
-      renderCalendar();
-      break;
-    case 'gantt':
-      renderGanttChart();
-      break;
-    case 'reports':
-      generateReports();
-      break;
-    default:
-      renderKanbanTasks();
+  try {
+    const activeView = getActiveView();
+    console.log('🔄 Actualizando vista:', activeView);
+    
+    // Verificar que las funciones existan antes de llamarlas
+    if (typeof getActiveView !== 'function') {
+      console.warn('⚠️ getActiveView no está disponible');
+      return;
+    }
+    
+    switch(activeView) {
+      case 'board':
+        if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
+        break;
+      case 'list':
+        if (typeof renderListTasks === 'function') renderListTasks();
+        break;
+      case 'dashboard':
+        if (typeof renderDashboard === 'function') renderDashboard();
+        break;
+      case 'calendar':
+        if (typeof renderCalendar === 'function') renderCalendar();
+        break;
+      case 'gantt':
+        if (typeof renderGanttChart === 'function') renderGanttChart();
+        break;
+      case 'reports':
+        if (typeof generateReports === 'function') generateReports();
+        break;
+      default:
+        if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
+    }
+    
+    // Actualizar estadísticas si existen
+    if (typeof updateStatistics === 'function') updateStatistics();
+    if (typeof generatePieChart === 'function' && typeof getStats === 'function') {
+      generatePieChart(getStats());
+    }
+    if (typeof updateProjectProgress === 'function') updateProjectProgress();
+    
+  } catch (error) {
+    console.error('❌ Error en refreshCurrentView:', error);
   }
-  
-  // Actualizar estadísticas siempre
-  updateStatistics();
-  generatePieChart(getStats());
-  updateProjectProgress();
 }
-
 
 // === FUNCIONES DE AUTENTICACIÓN (ÁMBITO GLOBAL) ===
 function showRegisterForm() {
@@ -2649,12 +2674,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Inicializar el resto de la aplicación
     setupEventListeners();
 
-// INICIAR WEBSOCKETS DESPUÉS DE LA AUTENTICACIÓN
-  if (authToken) {
-    initWebSocket();
-  }
+// INICIAR WEBSOCKETS AL FINAL, después de que todo esté cargado
+  setTimeout(() => {
+    if (authToken) {
+      console.log('🚀 Iniciando WebSockets...');
+      initWebSocket();
+    }
+  }, 2000); // Esperar 2 segundos a que todo cargue
 });
-
 
 
     
