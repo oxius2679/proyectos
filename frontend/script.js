@@ -305,9 +305,6 @@ function refreshCurrentView() {
     console.error('❌ Error sincronizando datos:', error);
   });
 }
-
-
-
 // === FUNCIONES DE AUTENTICACIÓN (ÁMBITO GLOBAL) ===
 function showRegisterForm() {
   document.getElementById('loginForm').style.display = 'none';
