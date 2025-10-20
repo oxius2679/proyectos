@@ -1713,11 +1713,7 @@ function createNewTask(e) {
   }
   
   showNotification(`Tarea "${task.name}" creada`);
-} // ← ESTA LÍNEA YA ESTÁ BIEN
-
-} // ← ESTA LÍNEA FALTABA - AGREGALA
-
-function deleteTask(taskStr) {
+}function deleteTask(taskStr) {
   const task = JSON.parse(decodeURIComponent(taskStr));
   if (confirm(`¿Estás seguro de eliminar "${task.name}"? Esta acción no se puede deshacer.`)) {
     projects[currentProjectIndex].tasks = projects[currentProjectIndex].tasks.filter(t => t.id !== task.id);
@@ -1725,11 +1721,12 @@ function deleteTask(taskStr) {
     actualizarAsignados();
     aplicarFiltros();
     generatePieChart(getStats());
-    updateProjectProgress();
-    actualizarAsignados();
+          updateProjectProgress();
+         actualizarAsignados();
     showNotification(`Tarea "${task.name}" eliminada`);
   }
 }
+
 
 /*********************
  * GESTIÓN DE TAREAS *
