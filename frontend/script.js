@@ -221,52 +221,46 @@ let tiempoRealSocket = null;
 
 function initWebSocket() {
   try {
-    // Verificar que io esté disponible
     if (typeof io === 'undefined') {
-      console.warn('⚠️ Socket.io no está cargado aún');
-      setTimeout(initWebSocket, 1000); // Reintentar en 1 segundo
+      console.warn('⚠️ Socket.io no cargado, reintentando...');
+      setTimeout(initWebSocket, 2000);
       return;
     }
     
-    console.log('🔄 Iniciando conexión WebSocket...');
-    tiempoRealSocket = io('https://proyectos-backend-lx0a.onrender.com');
+    console.log('🔄 Iniciando WebSocket...');
+    tiempoRealSocket = io('https://proyectos-backend-lx0a.onrender.com', {
+      transports: ['websocket', 'polling']
+    });
     
-    tiempoRealSocket.on('connect', () => {
+    tiempoRealSocket.on('connect', function() {
       console.log('🔗 Conectado al servidor en tiempo real');
-      
-      if (currentProjectIndex !== null && currentProjectIndex !== undefined) {
-        tiempoRealSocket.emit('join-project', currentProjectIndex);
-        console.log('👥 Unido al proyecto:', currentProjectIndex);
+      if (window.currentProjectIndex !== null && window.currentProjectIndex !== undefined) {
+        tiempoRealSocket.emit('join-project', window.currentProjectIndex);
       }
     });
     
-    tiempoRealSocket.on('task-updated', (data) => {
+    tiempoRealSocket.on('task-updated', function(data) {
       console.log('🔄 Cambio recibido:', data);
-      refreshCurrentView();
-      if (typeof showNotification === 'function') {
-        showNotification(`📢 ${data.userName || 'Alguien'} actualizó: ${data.taskName}`);
+      if (typeof refreshCurrentView === 'function') {
+        refreshCurrentView();
       }
     });
     
-    tiempoRealSocket.on('disconnect', () => {
-      console.log('🔌 Desconectado del servidor en tiempo real');
+    tiempoRealSocket.on('disconnect', function() {
+      console.log('🔌 Desconectado');
     });
     
   } catch (error) {
-    console.error('❌ Error iniciando WebSockets:', error);
+    console.error('❌ Error WebSocket:', error);
   }
 }
 
 function refreshCurrentView() {
   try {
+    if (typeof getActiveView !== 'function') return;
+    
     const activeView = getActiveView();
     console.log('🔄 Actualizando vista:', activeView);
-    
-    // Verificar que las funciones existan antes de llamarlas
-    if (typeof getActiveView !== 'function') {
-      console.warn('⚠️ getActiveView no está disponible');
-      return;
-    }
     
     switch(activeView) {
       case 'board':
@@ -278,31 +272,13 @@ function refreshCurrentView() {
       case 'dashboard':
         if (typeof renderDashboard === 'function') renderDashboard();
         break;
-      case 'calendar':
-        if (typeof renderCalendar === 'function') renderCalendar();
-        break;
-      case 'gantt':
-        if (typeof renderGanttChart === 'function') renderGanttChart();
-        break;
-      case 'reports':
-        if (typeof generateReports === 'function') generateReports();
-        break;
       default:
         if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
     }
-    
-    // Actualizar estadísticas si existen
-    if (typeof updateStatistics === 'function') updateStatistics();
-    if (typeof generatePieChart === 'function' && typeof getStats === 'function') {
-      generatePieChart(getStats());
-    }
-    if (typeof updateProjectProgress === 'function') updateProjectProgress();
-    
   } catch (error) {
-    console.error('❌ Error en refreshCurrentView:', error);
+    console.error('❌ Error actualizando vista:', error);
   }
 }
-
 // === FUNCIONES DE AUTENTICACIÓN (ÁMBITO GLOBAL) ===
 function showRegisterForm() {
   document.getElementById('loginForm').style.display = 'none';
@@ -2704,23 +2680,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     initPersistenceSystem();
     
     // Verificar que todo funcione
-    setTimeout(() => {
-        validateApplication();
-        
-        // Mostrar resumen final
-        console.log('🌈 ¡APLICACIÓN COMPLETAMENTE OPERATIVA!');
-        console.log('📍 Puedes usar estos comandos en consola:');
-        console.log('   - forceSync() - Forzar sincronización manual');
-        console.log('   - checkConnectionStatus() - Ver estado de conexión');
-        console.log('   - debugApplication() - Diagnóstico completo');
-        console.log('   - debugDashboard() - Diagnóstico del dashboard');
-        
-    }, 1000);
-});
-
-
-
-
+setTimeout(() => {
+    validateApplication();
+    
+    // Mostrar resumen final
+    console.log('🌈 ¡APLICACIÓN COMPLETAMENTE OPERATIVA!');
+    console.log('📍 Puedes usar estos comandos en consola:');
+    console.log('   - forceSync() - Forzar sincronización manual');
+    console.log('   - checkConnectionStatus() - Ver estado de conexión');
+    console.log('   - debugApplication() - Diagnóstico completo');
+    console.log('   - debugDashboard() - Diagnóstico del dashboard');
+    
+}, 1000);
 
 // Función de validación completa
 function validateApplication() {
@@ -2772,6 +2743,14 @@ function testCriticalFunctions() {
     
     console.groupEnd();
 }
+
+// === AGREGAR INICIALIZACIÓN DE WEBSOCKETS AL FINAL ===
+setTimeout(() => {
+    if (authToken && typeof initWebSocket === 'function') {
+        console.log('🚀 Iniciando WebSockets...');
+        initWebSocket();
+    }
+}, 1500);
 
 /***********************
  * FUNCIONES DE MOVIMIENTO DE TAREAS *
