@@ -1661,8 +1661,23 @@ function createNewTask(e) {
   const task = {
     id: Date.now(),
     name: taskName,
-    // ... más propiedades ...
+    startDate: document.getElementById('taskStartDate')?.value || '',
+    deadline: document.getElementById('taskDeadline')?.value || '',
+    priority: document.getElementById('taskPriority')?.value || 'baja',
+    assignee: document.getElementById('taskAssignee')?.value || '',
+    description: document.getElementById('taskDescription')?.value || '',
+    status: 'pending',
+    timeLogged: 0,
+    estimatedTime: parseFloat(document.getElementById('estimatedHours')?.value) || 0,
+    timeHistory: [],
+    subtasks: []
   };
+
+  // Asegurar que el proyecto actual existe
+  if (!projects[currentProjectIndex]) {
+    showNotification('Error: No hay proyecto seleccionado');
+    return;
+  }
 
   projects[currentProjectIndex].tasks.push(task);
   updateLocalStorage();
@@ -1671,10 +1686,11 @@ function createNewTask(e) {
   aplicarFiltros();
   generatePieChart(getStats());
   updateProjectProgress();
+  actualizarAsignados();
 
-  // 🔥 AQUÍ DEBES AGREGAR EL CÓDIGO DE NOTIFICACIÓN:
-  if (tiempoRealSocket && tiempoRealSocket.connected) {
-    tiempoRealSocket.emit('task-changed', {
+  // NOTIFICAR a otros usuarios
+  if (window.tiempoRealSocket && window.tiempoRealSocket.connected) {
+    window.tiempoRealSocket.emit('task-changed', {
       projectId: currentProjectIndex,
       taskId: task.id,
       taskName: task.name,
@@ -1685,22 +1701,21 @@ function createNewTask(e) {
     console.log('📢 Notificando creación de tarea a otros usuarios');
   }
 
-  if (createTaskModal) createTaskModal.style.display = 'none';
-  e.target.reset();
-  showNotification(`Tarea "${task.name}" creada`);
-}function editTask(taskStr) {
-  const task = JSON.parse(decodeURIComponent(taskStr));
-  const newName = prompt('Editar nombre:', task.name);
-  if (newName) {
-    task.name = newName;
-    updateLocalStorage();
-    actualizarAsignados();
-    aplicarFiltros();
-    generatePieChart(getStats());
-         updateProjectProgress();
-    showNotification(`Tarea "${task.name}" actualizada`);
+  // Cerrar modal y limpiar formulario
+  if (window.createTaskModal) {
+    window.createTaskModal.style.display = 'none';
   }
-}
+  
+  // Limpiar formulario de forma segura
+  const form = document.getElementById('createTaskForm');
+  if (form) {
+    form.reset();
+  }
+  
+  showNotification(`Tarea "${task.name}" creada`);
+} // ← ESTA LÍNEA YA ESTÁ BIEN
+
+} // ← ESTA LÍNEA FALTABA - AGREGALA
 
 function deleteTask(taskStr) {
   const task = JSON.parse(decodeURIComponent(taskStr));
@@ -1710,12 +1725,11 @@ function deleteTask(taskStr) {
     actualizarAsignados();
     aplicarFiltros();
     generatePieChart(getStats());
-          updateProjectProgress();
-         actualizarAsignados();
+    updateProjectProgress();
+    actualizarAsignados();
     showNotification(`Tarea "${task.name}" eliminada`);
   }
 }
-
 
 /*********************
  * GESTIÓN DE TAREAS *
