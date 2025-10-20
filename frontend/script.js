@@ -5482,12 +5482,13 @@ function initPersistenceSystem() {
     // 2. Iniciar auto-sincronización
     startAutoSync();
     
-    // 3. Verificar estado inicial
+     // 3. Verificar estado inicial
     checkConnectionStatus();
     
     console.log('✅ Sistema de persistencia completamente operativo');
     console.groupEnd();
 }
+
 // === LISTENER GLOBAL PARA EL BOTÓN DE MENÚ (funciona siempre) ===
 document.addEventListener('DOMContentLoaded', () => {
   const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
@@ -5496,7 +5497,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (toggleSidebarBtn && sidebar) {
     toggleSidebarBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
-     });
+    });
   }
 });
 
