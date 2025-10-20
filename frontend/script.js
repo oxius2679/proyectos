@@ -256,28 +256,54 @@ function initWebSocket() {
 }
 
 function refreshCurrentView() {
-  try {
-    if (typeof getActiveView !== 'function') return;
+  console.log('🔄 Sincronizando datos desde la base de datos...');
+  
+  // 🔥 FORZAR CARGA DESDE LA BASE DE DATOS COMPARTIDA
+  safeLoad().then(() => {
+    console.log('✅ Datos sincronizados desde MongoDB');
     
-    const activeView = getActiveView();
-    console.log('🔄 Actualizando vista:', activeView);
-    
-    switch(activeView) {
-      case 'board':
-        if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
-        break;
-      case 'list':
-        if (typeof renderListTasks === 'function') renderListTasks();
-        break;
-      case 'dashboard':
-        if (typeof renderDashboard === 'function') renderDashboard();
-        break;
-      default:
-        if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
+    try {
+      if (typeof getActiveView !== 'function') return;
+      
+      const activeView = getActiveView();
+      console.log('🔄 Actualizando vista:', activeView);
+      
+      switch(activeView) {
+        case 'board':
+          if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
+          break;
+        case 'list':
+          if (typeof renderListTasks === 'function') renderListTasks();
+          break;
+        case 'dashboard':
+          if (typeof renderDashboard === 'function') renderDashboard();
+          break;
+        case 'calendar':
+          if (typeof renderCalendar === 'function') renderCalendar();
+          break;
+        case 'gantt':
+          if (typeof renderGanttChart === 'function') renderGanttChart();
+          break;
+        case 'reports':
+          if (typeof generateReports === 'function') generateReports();
+          break;
+        default:
+          if (typeof renderKanbanTasks === 'function') renderKanbanTasks();
+      }
+      
+      // Actualizar estadísticas
+      if (typeof updateStatistics === 'function') updateStatistics();
+      if (typeof generatePieChart === 'function' && typeof getStats === 'function') {
+        generatePieChart(getStats());
+      }
+      if (typeof updateProjectProgress === 'function') updateProjectProgress();
+      
+    } catch (error) {
+      console.error('❌ Error actualizando vista:', error);
     }
-  } catch (error) {
-    console.error('❌ Error actualizando vista:', error);
-  }
+  }).catch(error => {
+    console.error('❌ Error sincronizando datos:', error);
+  });
 }
 // === FUNCIONES DE AUTENTICACIÓN (ÁMBITO GLOBAL) ===
 function showRegisterForm() {
