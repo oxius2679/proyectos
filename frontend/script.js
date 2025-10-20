@@ -5497,7 +5497,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (toggleSidebarBtn && sidebar) {
     toggleSidebarBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
-    });
-  }
+   // ... tu código anterior ...
+
+// ===== CIERRE FINAL =====
+});
+});
+// ========================
 
 
