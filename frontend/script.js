@@ -1689,17 +1689,34 @@ function createNewTask(e) {
   updateProjectProgress();
   actualizarAsignados();
 
-  // NOTIFICAR a otros usuarios
-  if (window.tiempoRealSocket && window.tiempoRealSocket.connected) {
-    window.tiempoRealSocket.emit('task-changed', {
-      projectId: currentProjectIndex,
-      taskId: task.id,
-      taskName: task.name,
-      userName: 'Usuario actual',
-      type: 'task-created',
-      timestamp: new Date().toISOString()
+  // 🔥 NOTIFICAR A OTROS USUARIOS - VERSIÓN MEJORADA
+  console.log('🔔 Intentando notificar creación de tarea...');
+  console.log('🔗 WebSocket disponible:', typeof tiempoRealSocket !== 'undefined');
+  console.log('🔗 WebSocket conectado:', tiempoRealSocket?.connected);
+  
+  if (tiempoRealSocket && tiempoRealSocket.connected) {
+    console.log('📤 Enviando notificación WebSocket...');
+    
+    // Forzar el envío con timeout para asegurar
+    setTimeout(() => {
+      tiempoRealSocket.emit('task-changed', {
+        projectId: currentProjectIndex,
+        taskId: task.id,
+        taskName: task.name,
+        userName: 'Usuario actual',
+        type: 'task-created',
+        timestamp: new Date().toISOString()
+      });
+      console.log('✅ Notificación enviada para tarea:', task.name);
+    }, 100);
+  } else {
+    console.log('❌ WebSocket no disponible para notificar');
+    console.log('🔍 Estado detallado:', {
+      socketExiste: typeof tiempoRealSocket !== 'undefined',
+      conectado: tiempoRealSocket?.connected,
+      tieneAuth: !!authToken,
+      projectId: currentProjectIndex
     });
-    console.log('📢 Notificando creación de tarea a otros usuarios');
   }
 
   // Cerrar modal y limpiar formulario
@@ -1714,20 +1731,36 @@ function createNewTask(e) {
   }
   
   showNotification(`Tarea "${task.name}" creada`);
-}function deleteTask(taskStr) {
+}
+
+function deleteTask(taskStr) {
   const task = JSON.parse(decodeURIComponent(taskStr));
   if (confirm(`¿Estás seguro de eliminar "${task.name}"? Esta acción no se puede deshacer.`)) {
+    // 🔥 NOTIFICAR ANTES de eliminar
+    console.log('🔔 Intentando notificar eliminación...');
+    
+    if (tiempoRealSocket && tiempoRealSocket.connected) {
+      tiempoRealSocket.emit('task-changed', {
+        projectId: currentProjectIndex,
+        taskId: task.id,
+        taskName: task.name,
+        userName: 'Usuario actual',
+        type: 'task-deleted',
+        timestamp: new Date().toISOString()
+      });
+      console.log('✅ Notificación de eliminación enviada');
+    }
+    
     projects[currentProjectIndex].tasks = projects[currentProjectIndex].tasks.filter(t => t.id !== task.id);
     updateLocalStorage();
     actualizarAsignados();
     aplicarFiltros();
     generatePieChart(getStats());
-          updateProjectProgress();
-         actualizarAsignados();
+    updateProjectProgress();
+    actualizarAsignados();
     showNotification(`Tarea "${task.name}" eliminada`);
   }
 }
-
 
 /*********************
  * GESTIÓN DE TAREAS *
