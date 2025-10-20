@@ -121,6 +121,8 @@ async function safeSave() {
 async function safeLoad() {
   console.group('📥 Cargando datos desde backend o localStorage');
   let loadedData = null;
+
+  // ✅ Si el backend está disponible, CARGA SIEMPRE desde ahí
   if (await checkBackendStatus()) {
     try {
       const response = await fetch(`${API_URL}/projects`, {
@@ -130,19 +132,18 @@ async function safeLoad() {
         loadedData = await response.json();
         console.log('✅ Datos cargados desde MongoDB');
         window.useBackend = true;
-        // Guardar en localStorage como respaldo
+        // ✅ Guardar en localStorage como respaldo, PERO USAR los del backend
         localStorage.setItem('projects', JSON.stringify(loadedData.projects));
         localStorage.setItem('currentProjectIndex', loadedData.currentProjectIndex || 0);
-      } else {
-        console.warn('⚠️ Backend devolvió un error:', response.status);
       }
     } catch (error) {
-      console.warn('⚠️ Error cargando desde backend:', error.message);
+      console.warn('⚠️ Error cargando desde backend');
     }
   }
-  // Solo usar localStorage si el backend no devolvió un array de proyectos válido
-  if (!loadedData || !Array.isArray(loadedData.projects)) {
-    console.log('🔄 Usando datos de localStorage como respaldo');
+
+  // ❌ Solo usar localStorage si el backend NO está disponible
+  if (!loadedData || !loadedData.projects) {
+    console.log('🔄 Backend no disponible, usando localStorage');
     const savedProjects = localStorage.getItem('projects');
     if (savedProjects) {
       loadedData = {
@@ -151,7 +152,8 @@ async function safeLoad() {
       };
     }
   }
-  if (loadedData && Array.isArray(loadedData.projects)) {
+
+  if (loadedData && loadedData.projects) {
     projects = loadedData.projects;
     currentProjectIndex = loadedData.currentProjectIndex || 0;
   } else {
@@ -162,6 +164,7 @@ async function safeLoad() {
   console.groupEnd();
   return !!loadedData;
 }
+
 
 /**************************************
  * SISTEMA DE METODOLOGÍAS HÍBRIDAS - PASO 1 *
@@ -2088,7 +2091,7 @@ function handleDrop(e) {
   
   const statusMap = {
     pendingTasks: 'pending',
-    inProgressTasks: 'inProgress', 
+    inProgressTasks: 'inProgress',
     completedTasks: 'completed',
     overdueTasks: 'overdue'
   };
@@ -2103,9 +2106,10 @@ function handleDrop(e) {
     actualizarAsignados();
     aplicarFiltros();
     updateStatistics();
-    updateResourceAllocation();
+    updateResourceAllocation(); // <-- Esta es la línea que agregas
 
-    // 🔥 AGREGAR NOTIFICACIÓN PARA DRAG & DROP
+
+ // 🔥 AGREGAR NOTIFICACIÓN PARA DRAG & DROP
     if (tiempoRealSocket && tiempoRealSocket.connected) {
       tiempoRealSocket.emit('task-changed', {
         projectId: currentProjectIndex,
@@ -2118,6 +2122,17 @@ function handleDrop(e) {
       });
       console.log('📢 Notificando movimiento de tarea');
     }
+
+
+ // 🔥 NUEVO: actualizar gráfica de status
+  generatePieChart(getStats());
+  updateProjectProgress();
+  actualizarAsignados();
+  }
+
+  e.currentTarget.style.backgroundColor = '';
+}
+
 function checkTaskOverdue(task) {
   if (task.status === 'completed') return false;
   
@@ -5479,13 +5494,12 @@ function initPersistenceSystem() {
     // 2. Iniciar auto-sincronización
     startAutoSync();
     
-     // 3. Verificar estado inicial
+    // 3. Verificar estado inicial
     checkConnectionStatus();
     
     console.log('✅ Sistema de persistencia completamente operativo');
     console.groupEnd();
 }
-
 // === LISTENER GLOBAL PARA EL BOTÓN DE MENÚ (funciona siempre) ===
 document.addEventListener('DOMContentLoaded', () => {
   const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
@@ -5494,7 +5508,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (toggleSidebarBtn && sidebar) {
     toggleSidebarBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
-   // ... tu código anterior ...
+    });
+  }
 });
-});
-// EOF
+
+
+
