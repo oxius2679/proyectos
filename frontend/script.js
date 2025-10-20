@@ -237,13 +237,15 @@ function initWebSocket() {
       if (window.currentProjectIndex !== null && window.currentProjectIndex !== undefined) {
         tiempoRealSocket.emit('join-project', window.currentProjectIndex);
       }
+      
+      // 🔥 CONFIGURAR LISTENERS PARA EVENTOS DE SALIDA
+      console.log('👂 Configurando listeners de salida...');
     });
     
+    // 🔥 LISTENER PARA EVENTOS ENTRANTES (RECIBIR)
     tiempoRealSocket.on('task-updated', function(data) {
-      console.log('🔄 Cambio recibido:', data);
-      if (typeof refreshCurrentView === 'function') {
-        refreshCurrentView();
-      }
+      console.log('🎯 EVENTO RECIBIDO:', data);
+      refreshCurrentView();
     });
     
     tiempoRealSocket.on('disconnect', function() {
@@ -254,7 +256,6 @@ function initWebSocket() {
     console.error('❌ Error WebSocket:', error);
   }
 }
-
 function refreshCurrentView() {
   console.log('🔄 Sincronizando datos desde la base de datos...');
   
