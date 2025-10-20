@@ -809,24 +809,30 @@ function deleteTaskFromMenu(taskId) {
   if (!task) return;
   
   if (confirm(`¿Estás seguro de eliminar "${task.name}"? Esta acción no se puede deshacer.`)) {
+    // 🔥 PRIMERO NOTIFICAR la eliminación
+    if (tiempoRealSocket && tiempoRealSocket.connected) {
+      tiempoRealSocket.emit('task-changed', {
+        projectId: currentProjectIndex,
+        taskId: taskId,
+        taskName: task.name,
+        userName: 'Usuario actual',
+        type: 'task-deleted',
+        timestamp: new Date().toISOString()
+      });
+      console.log('📢 Notificando eliminación de tarea');
+    }
+    
+    // LUEGO eliminar (tu código actual)
     projects[currentProjectIndex].tasks = projects[currentProjectIndex].tasks.filter(t => t.id !== taskId);
     updateLocalStorage();
     actualizarAsignados();
     aplicarFiltros();
     generatePieChart(getStats());
-          updateProjectProgress();
-          actualizarAsignados();
+    updateProjectProgress();
+    actualizarAsignados();
     showNotification(`Tarea "${task.name}" eliminada`);
   }
 }
-
-// Cerrar menús contextuales al hacer clic en cualquier parte del documento
-document.addEventListener('click', function() {
-  document.querySelectorAll('.task-context-menu').forEach(menu => {
-    menu.classList.remove('show');
-  });
-});
-
 function renderListTasks(tasks = null) {
   const taskTableBody = document.getElementById('taskTableBody');
   if (!taskTableBody) return;
@@ -1630,16 +1636,7 @@ function createNewTask(e) {
   const task = {
     id: Date.now(),
     name: taskName,
-    startDate: document.getElementById('taskStartDate')?.value || '',
-    deadline: document.getElementById('taskDeadline')?.value || '',
-    priority: document.getElementById('taskPriority')?.value || 'baja',
-    assignee: document.getElementById('taskAssignee')?.value || '',
-    description: document.getElementById('taskDescription')?.value || '',
-    status: 'pending',
-    timeLogged: 0,
-    estimatedTime: parseFloat(document.getElementById('estimatedHours')?.value) || 0,
-    timeHistory: [],
-    subtasks: [] // Nuevo campo
+    // ... más propiedades ...
   };
 
   projects[currentProjectIndex].tasks.push(task);
@@ -1648,15 +1645,25 @@ function createNewTask(e) {
   actualizarAsignados();
   aplicarFiltros();
   generatePieChart(getStats());
-updateProjectProgress();
+  updateProjectProgress();
 
-// 🔥 NUEVO
-actualizarAsignados();
+  // 🔥 AQUÍ DEBES AGREGAR EL CÓDIGO DE NOTIFICACIÓN:
+  if (tiempoRealSocket && tiempoRealSocket.connected) {
+    tiempoRealSocket.emit('task-changed', {
+      projectId: currentProjectIndex,
+      taskId: task.id,
+      taskName: task.name,
+      userName: 'Usuario actual',
+      type: 'task-created',
+      timestamp: new Date().toISOString()
+    });
+    console.log('📢 Notificando creación de tarea a otros usuarios');
+  }
+
   if (createTaskModal) createTaskModal.style.display = 'none';
   e.target.reset();
   showNotification(`Tarea "${task.name}" creada`);
-}
-function editTask(taskStr) {
+}function editTask(taskStr) {
   const task = JSON.parse(decodeURIComponent(taskStr));
   const newName = prompt('Editar nombre:', task.name);
   if (newName) {
@@ -1958,7 +1965,7 @@ function saveTaskChanges(taskId) {
       deadline: document.getElementById('editTaskDeadline')?.value || project.tasks[taskIndex].deadline,
       assignee: document.getElementById('editTaskAssignee')?.value || project.tasks[taskIndex].assignee,
       description: document.getElementById('editTaskDescription')?.value || project.tasks[taskIndex].description,
-      estimatedTime: parseFloat(document.getElementById('editTaskEstimatedHours')?.value) || 0, // <-- Esta es la línea a añadir
+      estimatedTime: parseFloat(document.getElementById('editTaskEstimatedHours')?.value) || 0,
       subtasks: project.tasks[taskIndex].subtasks || [] // Mantener subtareas existentes
     };
 
@@ -1972,12 +1979,26 @@ function saveTaskChanges(taskId) {
     updateStatistics();
     generatePieChart(getStats());
     updateProjectProgress();
-          actualizarAsignados();
+    actualizarAsignados();
     generateReports();
-          updateResourceAllocation(); // <-- Esta es la línea que agregas
- // Actualizar fechas del proyecto
+    updateResourceAllocation();
+    
+    // Actualizar fechas del proyecto
     const { earliestDate, latestDate } = calculateProjectDatesFromTasks(project);
     updateProjectDatesInDashboard(earliestDate, latestDate);
+    
+    // 🔥 NOTIFICAR a otros usuarios sobre la actualización
+    if (tiempoRealSocket && tiempoRealSocket.connected) {
+      tiempoRealSocket.emit('task-changed', {
+        projectId: currentProjectIndex,
+        taskId: taskId,
+        taskName: editedTask.name,
+        userName: 'Usuario actual',
+        type: 'task-updated',
+        timestamp: new Date().toISOString()
+      });
+      console.log('📢 Notificando actualización de tarea');
+    }
     
     // Cerrar el modal
     taskDetailsModal.style.display = 'none';
@@ -1986,7 +2007,6 @@ function saveTaskChanges(taskId) {
     showNotification('Error: No se encontró la tarea para actualizar');
   }
 }
-
 /*****************
  * VISTAS (UI) *
  *****************/
@@ -2071,7 +2091,7 @@ function handleDrop(e) {
   
   const statusMap = {
     pendingTasks: 'pending',
-    inProgressTasks: 'inProgress',
+    inProgressTasks: 'inProgress', 
     completedTasks: 'completed',
     overdueTasks: 'overdue'
   };
@@ -2086,17 +2106,21 @@ function handleDrop(e) {
     actualizarAsignados();
     aplicarFiltros();
     updateStatistics();
-      updateResourceAllocation(); // <-- Esta es la línea que agregas
+    updateResourceAllocation();
 
- // 🔥 NUEVO: actualizar gráfica de status
-  generatePieChart(getStats());
-  updateProjectProgress();
-  actualizarAsignados();
-  }
-
-  e.currentTarget.style.backgroundColor = '';
-}
-
+    // 🔥 AGREGAR NOTIFICACIÓN PARA DRAG & DROP
+    if (tiempoRealSocket && tiempoRealSocket.connected) {
+      tiempoRealSocket.emit('task-changed', {
+        projectId: currentProjectIndex,
+        taskId: taskId,
+        taskName: task.name,
+        userName: 'Usuario actual',
+        type: 'task-moved',
+        newStatus: newStatus,
+        timestamp: new Date().toISOString()
+      });
+      console.log('📢 Notificando movimiento de tarea');
+    }
 function checkTaskOverdue(task) {
   if (task.status === 'completed') return false;
   
