@@ -1781,11 +1781,7 @@ function showTaskDetails(task) {
             <input type="text" id="editTaskAssignee" class="editable-input" value="${task.assignee || ''}">
           </div>
         </div>
-            </div> <!-- ← FALTA CERRAR EL DIV PRINCIPAL -->
-`; // ← FALTA ESTA COMILLA DE CIERRE
-
-
-
+        
         <!-- Columna Derecha -->
         <div class="detail-group">
   <label>Tiempo Estimado:</label>
