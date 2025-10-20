@@ -5499,6 +5499,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
+}); // ← AGREGAR ESTA LÍNEA AL FINAL DEL ARCHIVO
 
 
