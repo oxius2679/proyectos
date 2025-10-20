@@ -64,7 +64,7 @@ const API_URL = 'https://proyectos-backend-lx0a.onrender.com';
 async function checkBackendStatus() {
     try {
         console.log('🔄 Verificando conexión con backend...');
-        const response = await fetch(`${API_URL}/health`, {
+        const response = await fetch(`${API_URL}/api/health`, {
             timeout: 3000 // 3 segundos máximo
         });
         
