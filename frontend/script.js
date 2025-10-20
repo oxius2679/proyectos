@@ -5498,10 +5498,6 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleSidebarBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
    // ... tu código anterior ...
-
-// ===== CIERRE FINAL =====
 });
 });
-// ========================
-
-
+// EOF
