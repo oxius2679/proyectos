@@ -5496,9 +5496,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (toggleSidebarBtn && sidebar) {
     toggleSidebarBtn.addEventListener('click', () => {
       sidebar.classList.toggle('hidden');
-    });
+     });
   }
 });
-}); // ← AGREGAR ESTA LÍNEA AL FINAL DEL ARCHIVO
 
 
